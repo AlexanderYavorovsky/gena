@@ -49,8 +49,9 @@ def generate(dest_name):
 
 
 def build(src_name, dest_name):
+    # TODO: use riscv instead
     subprocess.run(
-        ['riscv64-linux-gnu-gcc', '--static', '-O0',
+        ['gcc', '--static', '-O0',
          '-I/usr/local/include', src_name, '-o', dest_name],
         capture_output=True)
 
