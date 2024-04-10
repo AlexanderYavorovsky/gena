@@ -7,6 +7,7 @@ gen_dir = 'generated'
 gen_filename = 'my1.c'
 out_filename = 'my1.out'
 
+# TODO: use argv
 
 def install_csmith():
     # clone repo
@@ -14,12 +15,10 @@ def install_csmith():
         subprocess.run(['git', 'clone', csmith_src])
 
     os.chdir(csmith_dir)
-    subprocess.run(['ls'])
 
     # install requirements
     subprocess.run(['sudo', 'apt', 'install', 'g++', 'cmake', 'm4'])
 
-    # TODO: do not build if already built?
     # TODO: cmake install prefix?
     # TODO: get rid of install, use package;
     #       do not forget to fix all paths to csmith and its .h
@@ -39,7 +38,7 @@ def generate(dest_name):
         os.mkdir(gen_dir)
     os.chdir(gen_dir)
 
-    # TODO: arguments
+    # TODO: arguments from mutation
     gen_proc = subprocess.run(
         ['/usr/local/bin/csmith'],
         capture_output=True, text=True)
