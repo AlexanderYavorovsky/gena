@@ -1,5 +1,6 @@
 import subprocess
 import os
+import argparse
 
 csmith_src = 'https://github.com/csmith-project/csmith.git'
 csmith_dir = 'csmith'
@@ -7,7 +8,23 @@ gen_dir = 'generated'
 gen_filename = 'my1.c'
 out_filename = 'my1.out'
 
-# TODO: use argv
+
+# TODO: make more clearly
+parser = argparse.ArgumentParser(description='Generate random .out file')
+parser.add_argument('-s', '--source', help='name of the generated .c file')
+parser.add_argument('-o', '--out', help='name of the generated .out file')
+parser.add_argument('-d', '--outdir', help='''related path to the directory
+                    where generated files will be stored''')
+
+args = parser.parse_args()
+
+if args.source:
+    gen_filename = args.source
+if args.out:
+    out_filename = args.out
+if args.outdir:
+    gen_dir = args.outdir
+
 
 def install_csmith():
     # clone repo
