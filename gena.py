@@ -1,6 +1,7 @@
 import subprocess
 import os
 import argparse
+import random
 
 csmith_src = 'https://github.com/csmith-project/csmith.git'
 csmith_dir = 'csmith'
@@ -8,6 +9,14 @@ gen_dir = 'generated'
 gen_filename = 'my1.c'
 out_filename = 'my1.out'
 
+# TODO: more options
+template_config = {
+    '--seed': range(1, 100),
+    '--max-funcs': range(1, 20),
+    '--max-expr-complexity': range(2, 30)
+}
+
+config = dict()
 
 # TODO: make more clearly
 parser = argparse.ArgumentParser(description='Generate random .out file')
@@ -45,8 +54,17 @@ def install_csmith():
 
 
 def install_tools():
-    # TODO: install riscv64-linux-gnu-gcc
-    pass
+    # TODO: use unknown elf
+    # subprocess.run(['sudo', 'apt', 'install', 'gcc-riscv64-unknown-elf'])
+    subprocess.run(['sudo', 'apt', 'install', 'gcc-riscv64-linux-gnu'])
+
+
+def generate_config(config):
+    for flag in template_config.keys():
+        if random.randint(0, 2):
+            config[flag] = str(random.choice(template_config[flag]))
+            print(flag)
+            print(config[flag])
 
 
 def generate(dest_name):
@@ -55,19 +73,23 @@ def generate(dest_name):
         os.mkdir(gen_dir)
     os.chdir(gen_dir)
 
+    generate_config(config)
+
     # TODO: arguments from mutation
-    gen_proc = subprocess.run(
-        ['/usr/local/bin/csmith'],
-        capture_output=True, text=True)
+    run_process = ['/usr/local/bin/csmith']
+    for flag in config.keys():
+        run_process.append(flag)
+        run_process.append(config[flag])
+    gen_proc = subprocess.run(run_process, capture_output=True, text=True)
 
     with open(dest_name, 'w') as f:
         f.write(gen_proc.stdout)
 
 
 def build(src_name, dest_name):
-    # TODO: use riscv instead
+    # TODO: use unknown elf instead
     subprocess.run(
-        ['gcc', '--static', '-O0',
+        ['riscv64-linux-gnu-gcc', '--static', '-O0',
          '-I/usr/local/include', src_name, '-o', dest_name],
         capture_output=True)
 
