@@ -9,15 +9,16 @@ csmith_dir = 'csmith'
 gen_dir = 'generated'
 out_dir = Path(__file__).resolve().parent / gen_dir
 gem5_dir = Path.cwd().parent / 'gem5'
+gem5_log = Path.cwd() / 'gem5_log.txt'
 gen_filename = 'my1.c'
 out_filename = 'my1.out'
 
 
-
 template_config = {
     '--seed': range(1, 100),
-    '--max-funcs': range(1, 10),
-    '--max-expr-complexity': range(2, 10)
+    '--max-funcs': range(1, 20),
+    '--max-expr-complexity': range(2, 50),
+    '--max-block-depth': range(2, 7)
 }
 
 def generate_config():
@@ -40,18 +41,20 @@ def mutation_func(chromosome):
     return child
 
 def run_gem5():
-    # result = random.randint(1, 100)
     subprocess.run(['cp', out_dir / out_filename, gem5_dir / out_filename])
     os.chdir(gem5_dir)
     print('running')
     try:
-        result = subprocess.run(['build/RISCV/gem5.opt', 'simple.py'], capture_output=True, timeout=10)
+        result = subprocess.run(['build/RISCV/gem5.opt', 'simple.py'], capture_output=True, text=True, timeout=10)
+        with open(gem5_log, '+a') as log:
+            log.write(result.stdout)
+        
         with open('m5out/stats.txt') as f:
             data = f.read()
-        match = re.search(r'system\.mem_ctrl\.dram\.avgQLat\s+(\d+\.\d+)', data)
+        stat = re.search(r'system\.mem_ctrl\.dram\.avgQLat\s+(\d+\.\d+)', data)
 
-        if match:
-            result = float(match.group(1))
+        if stat:
+            result = float(stat.group(1))
         else:
             result = 0
             # TODO: another value?
@@ -59,9 +62,6 @@ def run_gem5():
         result = 0
         print('res is 0 because timeout')
     
-
-    
-
     return result
 
 def fitness_func(chromosome):
@@ -97,7 +97,7 @@ def crossover(population, amount):
         population.append((child2, 0))
 
 
-desired_output = 100000
+desired_output = 10000
 initial_population = []
 for _ in range(5): 
     chromosome = generate_config()
