@@ -41,7 +41,9 @@ def fitness_func(chromosome):
     build(gen_filename, out_filename)
     print(f'Generated file {os.path.join(gen_dir, gen_filename)}'
       f' and built it into {os.path.join(gen_dir, out_filename)}')
-      #
+    
+    # os.chdir('..')
+
     result = random.randint(1, 100)
     if result != desired_output:
         fitness = 1.0 / abs(result - desired_output)
@@ -90,6 +92,7 @@ def generate(dest_name, config):
 
     with open(dest_name, 'w') as f:
         f.write(gen_proc.stdout)
+    os.chdir('..')
 
 
 def build(src_name, dest_name):
