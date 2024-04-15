@@ -2,8 +2,8 @@ import random
 import copy
 import subprocess
 import os
-import argparse
 from pathlib import Path
+import re
 
 csmith_dir = 'csmith'
 gen_dir = 'generated'
@@ -17,7 +17,7 @@ out_filename = 'my1.out'
 template_config = {
     '--seed': range(1, 100),
     '--max-funcs': range(1, 10),
-    '--max-expr-complexity': range(2, 50)
+    '--max-expr-complexity': range(2, 10)
 }
 
 def generate_config():
@@ -39,17 +39,39 @@ def mutation_func(chromosome):
     child[random_key] = str(random.choice(template_config[random_key]))
     return child
 
+def run_gem5():
+    # result = random.randint(1, 100)
+    subprocess.run(['cp', out_dir / out_filename, gem5_dir / out_filename])
+    os.chdir(gem5_dir)
+    print('running')
+    try:
+        result = subprocess.run(['build/RISCV/gem5.opt', 'simple.py'], capture_output=True, timeout=10)
+        with open('m5out/stats.txt') as f:
+            data = f.read()
+        match = re.search(r'system\.mem_ctrl\.dram\.avgQLat\s+(\d+\.\d+)', data)
+
+        if match:
+            result = float(match.group(1))
+        else:
+            result = 0
+            # TODO: another value?
+    except subprocess.TimeoutExpired:
+        result = 0
+        print('res is 0 because timeout')
+    
+
+    
+
+    return result
+
 def fitness_func(chromosome):
     generate(gen_filename, chromosome)
     build(gen_filename, out_filename)
     print(f'Generated file {os.path.join(gen_dir, gen_filename)}'
       f' and built it into {os.path.join(gen_dir, out_filename)}')
-    
-    subprocess.run(['cp', out_dir / out_filename, gem5_dir / out_filename])
-    os.chdir(gem5_dir)
-    subprocess.run([gem5_dir / 'build/RISCV/gem5.opt', 'simple.py'])
 
-    result = random.randint(1, 100)
+    result = run_gem5()
+    print(result)
     if result != desired_output:
         fitness = 1.0 / abs(result - desired_output)
     else:
@@ -75,9 +97,9 @@ def crossover(population, amount):
         population.append((child2, 0))
 
 
-desired_output = 10
+desired_output = 100000
 initial_population = []
-for _ in range(10): 
+for _ in range(5): 
     chromosome = generate_config()
     initial_population.append((chromosome, 0))
     
