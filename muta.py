@@ -3,9 +3,11 @@ import copy
 import subprocess
 import os
 import argparse
+from pathlib import Path
 
 csmith_dir = 'csmith'
 gen_dir = 'generated'
+out_dir = Path(__file__).resolve().parent / gen_dir
 gen_filename = 'my1.c'
 out_filename = 'my1.out'
 
@@ -78,10 +80,9 @@ for _ in range(10):
     
 
 def generate(dest_name, config):
-    os.chdir('..')
-    if not os.path.isdir(gen_dir):
-        os.mkdir(gen_dir)
-    os.chdir(gen_dir)
+    if not out_dir.is_dir():
+        out_dir.mkdir(parents=True)
+    os.chdir(out_dir)
 
     # TODO: arguments from mutation
     run_process = ['/usr/local/bin/csmith']
@@ -93,7 +94,6 @@ def generate(dest_name, config):
     with open(dest_name, 'w') as f:
         f.write(gen_proc.stdout)
     os.chdir('..')
-
 
 def build(src_name, dest_name):
     # TODO: use unknown elf instead
