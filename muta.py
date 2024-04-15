@@ -51,7 +51,7 @@ def run_gem5():
         
         with open('m5out/stats.txt') as f:
             data = f.read()
-        stat = re.search(r'system\.mem_ctrl\.dram\.avgQLat\s+(\d+\.\d+)', data)
+        stat = re.search(r'system\.cpu\.cpi\s+(\d+.\d+)', data)
 
         if stat:
             result = float(stat.group(1))
@@ -97,7 +97,7 @@ def crossover(population, amount):
         population.append((child2, 0))
 
 
-desired_output = 10000
+desired_output = 150
 initial_population = []
 for _ in range(5): 
     chromosome = generate_config()
