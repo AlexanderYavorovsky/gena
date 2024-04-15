@@ -8,6 +8,7 @@ from pathlib import Path
 csmith_dir = 'csmith'
 gen_dir = 'generated'
 out_dir = Path(__file__).resolve().parent / gen_dir
+gem5_dir = Path.cwd().parent / 'gem5'
 gen_filename = 'my1.c'
 out_filename = 'my1.out'
 
@@ -44,7 +45,9 @@ def fitness_func(chromosome):
     print(f'Generated file {os.path.join(gen_dir, gen_filename)}'
       f' and built it into {os.path.join(gen_dir, out_filename)}')
     
-    # os.chdir('..')
+    subprocess.run(['cp', out_dir / out_filename, gem5_dir / out_filename])
+    os.chdir(gem5_dir)
+    subprocess.run([gem5_dir / 'build/RISCV/gem5.opt', 'simple.py'])
 
     result = random.randint(1, 100)
     if result != desired_output:
@@ -93,16 +96,17 @@ def generate(dest_name, config):
 
     with open(dest_name, 'w') as f:
         f.write(gen_proc.stdout)
-    os.chdir('..')
 
 def build(src_name, dest_name):
     # TODO: use unknown elf instead
     subprocess.run(
         ['riscv64-linux-gnu-gcc', '--static', '-O0',
          '-I/usr/local/include', src_name, '-o', dest_name],
-        capture_output=True)    
+        capture_output=True)
+    os.chdir('..')
 
 def genetic_func(population, iterations):
+    subprocess.run(['cp', 'simple.py', gem5_dir / 'simple.py'])
     
     for index, item in enumerate(population):
         result = fitness_func(item[0])
